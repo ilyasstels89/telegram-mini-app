@@ -23,6 +23,7 @@
         }
         .category {
             margin-bottom: 2em;
+            padding-top: 80px; /* Отступ для учета верхней панели */
         }
         .category h2 {
             background-color: #1f1f1f;
@@ -53,6 +54,38 @@
             font-size: 1.1em;
             font-weight: bold;
             margin-bottom: 0.5em;
+        }
+        .menu-item .quantity {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 0.5em;
+            margin-bottom: 1em;
+        }
+        .menu-item .quantity button {
+            background-color: #ff5722;
+            color: white;
+            border: none;
+            padding: 0.3em 0.8em;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .menu-item .quantity input {
+            width: 40px;
+            text-align: center;
+            border: 1px solid #555;
+            border-radius: 4px;
+            padding: 0.2em;
+            background-color: #1f1f1f;
+            color: white;
+        }
+        .menu-item button.add-to-cart {
+            background-color: #388e3c;
+            color: white;
+            border: none;
+            padding: 0.5em 1em;
+            border-radius: 4px;
+            cursor: pointer;
         }
         .categories {
             display: flex;
@@ -143,6 +176,8 @@
         const SUPABASE_URL = 'https://zfoesujdbezworiwicno.supabase.co';
         const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpmb2VzdWpkYmV6d29yaXdpY25vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYzNTExMjEsImV4cCI6MjA1MTkyNzEyMX0.J9ssnUGmYlUUVVOHMaJiwcX8WqaYxUh-cpbugZh0L0U';
 
+        const cart = [];
+
         async function fetchMenu() {
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/menu`, {
@@ -184,10 +219,88 @@
                         <h3>${item.name}</h3>
                         <p>${item.description || ''}</p>
                         <p class="price">${item.price} руб.</p>
+                        <div class="quantity">
+                            <button onclick="decreaseQuantity(this)">-</button>
+                            <input type="number" value="1" min="1" oninput="validateQuantity(this)">
+                            <button onclick="increaseQuantity(this)">+</button>
+                        </div>
+                        <button class="add-to-cart" onclick="addToCart('${item.name}', ${item.price}, this)">Добавить в корзину</button>
                     `;
                     categoryDiv.appendChild(menuItem);
                 }
             });
+        }
+
+        function increaseQuantity(button) {
+            const input = button.previousElementSibling;
+            input.value = parseInt(input.value) + 1;
+        }
+
+        function decreaseQuantity(button) {
+            const input = button.nextElementSibling;
+            if (parseInt(input.value) > 1) {
+                input.value = parseInt(input.value) - 1;
+            }
+        }
+
+        function validateQuantity(input) {
+            input.value = Math.max(1, parseInt(input.value) || 1);
+        }
+
+        function addToCart(name, price, button) {
+            const quantity = parseInt(button.previousElementSibling.querySelector('input').value);
+            cart.push({ name, price, quantity });
+            updateCartDisplay();
+        }
+
+        function updateCartDisplay() {
+            const cartItems = document.getElementById('cart-items');
+            cartItems.innerHTML = '';
+            cart.forEach((item, index) => {
+                cartItems.innerHTML += `
+                    <div class="cart-item">
+                        <span>${item.name} x${item.quantity}</span>
+                        <span>${item.price * item.quantity} руб.</span>
+                        <button onclick="removeFromCart(${index})">Удалить</button>
+                    </div>
+                `;
+            });
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartDisplay();
+        }
+
+        async function placeOrder() {
+            const items = cart.map(item => `${item.name} x${item.quantity}`).join(', ');
+            const totalPrice = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+                    method: 'POST',
+                    headers: {
+                        apikey: SUPABASE_API_KEY,
+                        Authorization: `Bearer ${SUPABASE_API_KEY}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: 123456789, // Замените на ID пользователя
+                        items,
+                        total_price: totalPrice,
+                        status: 'В обработке',
+                    }),
+                });
+
+                if (!response.ok) throw new Error('Ошибка при оформлении заказа');
+
+                alert('Заказ успешно оформлен!');
+                cart.length = 0;
+                updateCartDisplay();
+            } catch (error) {
+                alert('Не удалось оформить заказ. Попробуйте позже.');
+                console.error(error);
+            }
         }
 
         fetchMenu();
