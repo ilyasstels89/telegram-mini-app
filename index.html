@@ -34,7 +34,7 @@
             background: #1f1f1f;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-            width: calc(25% - 1em);
+            width: calc(50% - 1em);
             display: inline-block;
             margin: 0.5em;
             vertical-align: top;
@@ -235,7 +235,7 @@
                         <img src="${item.photo_url || ''}" alt="${item.name}">
                         <h3>${item.name}</h3>
                         <p>${item.description || ''}</p>
-                        <button class="add-to-cart" onclick="addToCart('${item.name}', ${item.price}, this)">${item.price} руб.</button>
+                        <button class="add-to-cart" onclick="addToCart('${item.name}', ${item.price}, this)" data-price="${item.price}">${item.price} руб.</button>
                     `;
                     categoryDiv.appendChild(menuItem);
                 }
@@ -251,32 +251,46 @@
                 const quantityControls = document.createElement('div');
                 quantityControls.className = 'quantity';
                 quantityControls.innerHTML = `
-                    <button onclick="decreaseQuantity('${name}')">-</button>
+                    <button onclick="decreaseQuantity('${name}', this)">-</button>
                     <input type="number" value="1" readonly>
-                    <button onclick="increaseQuantity('${name}')">+</button>
+                    <button onclick="increaseQuantity('${name}', this)">+</button>
                 `;
+                quantityControls.dataset.name = name;
                 button.parentNode.appendChild(quantityControls);
                 button.remove();
             }
             updateCartTotal();
         }
 
-        function increaseQuantity(name) {
+        function increaseQuantity(name, button) {
             const item = cart.find(item => item.name === name);
             if (item) {
                 item.quantity += 1;
+                const inputField = button.previousElementSibling;
+                if (inputField) inputField.value = item.quantity;
                 updateCartTotal();
             }
         }
 
-        function decreaseQuantity(name) {
+        function decreaseQuantity(name, button) {
             const item = cart.find(item => item.name === name);
-            if (item && item.quantity > 1) {
-                item.quantity -= 1;
-            } else {
-                cart.splice(cart.indexOf(item), 1);
+            if (item) {
+                if (item.quantity > 1) {
+                    item.quantity -= 1;
+                    const inputField = button.nextElementSibling;
+                    if (inputField) inputField.value = item.quantity;
+                } else {
+                    cart.splice(cart.indexOf(item), 1);
+                    const quantityControls = button.parentNode;
+                    const priceButton = document.createElement('button');
+                    priceButton.className = 'add-to-cart';
+                    priceButton.textContent = `${item.price} руб.`;
+                    priceButton.setAttribute('onclick', `addToCart('${name}', ${item.price}, this)`);
+                    quantityControls.parentNode.appendChild(priceButton);
+                    quantityControls.remove();
+                }
+                updateCartTotal();
             }
-            updateCartTotal();
         }
 
         function updateCartTotal() {
