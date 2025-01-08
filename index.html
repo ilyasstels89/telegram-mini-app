@@ -9,10 +9,11 @@
             font-family: Arial, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #f7f7f7;
+            background-color: #121212;
+            color: #ffffff;
         }
         header {
-            background-color: #e68143;
+            background-color: #1f1f1f;
             color: white;
             text-align: center;
             padding: 1em 0;
@@ -25,9 +26,9 @@
             justify-content: center;
         }
         .menu-item {
-            background: white;
+            background: #1f1f1f;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
             width: 200px;
             text-align: center;
             padding: 1em;
@@ -41,7 +42,7 @@
             margin: 0.5em 0;
         }
         .menu-item .price {
-            color: #d32f2f;
+            color: #ff5722;
             font-size: 1.1em;
             font-weight: bold;
             margin-bottom: 0.5em;
@@ -54,7 +55,7 @@
             margin-bottom: 1em;
         }
         .menu-item .quantity button {
-            background-color: #d32f2f;
+            background-color: #ff5722;
             color: white;
             border: none;
             padding: 0.3em 0.8em;
@@ -64,9 +65,11 @@
         .menu-item .quantity input {
             width: 40px;
             text-align: center;
-            border: 1px solid #ccc;
+            border: 1px solid #555;
             border-radius: 4px;
             padding: 0.2em;
+            background-color: #1f1f1f;
+            color: white;
         }
         .menu-item button.add-to-cart {
             background-color: #388e3c;
@@ -79,12 +82,38 @@
         .cart {
             margin: 2em;
             padding: 1em;
-            background: #fff;
+            background: #1f1f1f;
             border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
         }
         .cart h2 {
             text-align: center;
+        }
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5em;
+        }
+        .categories {
+            display: flex;
+            justify-content: center;
+            gap: 1em;
+            padding: 1em;
+            background-color: #1f1f1f;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .categories button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 0.5em 1em;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .categories button.active {
+            background-color: #ff5722;
         }
     </style>
 </head>
@@ -92,8 +121,9 @@
     <header>
         <h1>Меню Кафе "Южане"</h1>
     </header>
-    <div id="categories">
-        <!-- Категории будут загружены через JavaScript -->
+    <div class="categories" id="categories">
+        <button class="active" onclick="filterCategory('grill')">Блюда на мангале</button>
+        <button onclick="filterCategory('sauces')">Соуса</button>
     </div>
     <div class="menu-container" id="menu">
         <!-- Меню будет загружено через JavaScript -->
@@ -104,26 +134,38 @@
         <button onclick="placeOrder()">Оформить заказ</button>
     </div>
     <script>
-       const SUPABASE_URL = 'https://zfoesujdbezworiwicno.supabase.co';
-       const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpmb2VzdWpkYmV6d29yaXdpY25vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYzNTExMjEsImV4cCI6MjA1MTkyNzEyMX0.J9ssnUGmYlUUVVOHMaJiwcX8WqaYxUh-cpbugZh0L0U'; // Используйте Anon Key
+        const SUPABASE_URL = 'https://zfoesujdbezworiwicno.supabase.co';
+        const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpmb2VzdWpkYmV6d29yaXdpY25vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYzNTExMjEsImV4cCI6MjA1MTkyNzEyMX0.J9ssnUGmYlUUVVOHMaJiwcX8WqaYxUh-cpbugZh0L0U';
 
+        const cart = [];
 
         async function fetchMenu() {
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/menu`, {
-                headers: {
-                    apikey: SUPABASE_API_KEY,
-                    Authorization: `Bearer ${SUPABASE_API_KEY}`,
-                },
-            });
-            const menu = await response.json();
-            displayMenu(menu);
+            document.body.style.cursor = 'wait';
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/menu`, {
+                    headers: {
+                        apikey: SUPABASE_API_KEY,
+                        Authorization: `Bearer ${SUPABASE_API_KEY}`,
+                    },
+                });
+                if (!response.ok) throw new Error('Ошибка загрузки меню');
+                const menu = await response.json();
+                displayMenu(menu);
+            } catch (error) {
+                alert('Не удалось загрузить меню. Попробуйте позже.');
+                console.error(error);
+            } finally {
+                document.body.style.cursor = 'default';
+            }
         }
 
         function displayMenu(menu) {
             const menuContainer = document.getElementById('menu');
+            menuContainer.innerHTML = '';
             menu.forEach(item => {
                 const menuItem = document.createElement('div');
                 menuItem.className = 'menu-item';
+                menuItem.dataset.category = item.category;
                 menuItem.innerHTML = `
                     <img src="${item.photo_url}" alt="${item.name}">
                     <h3>${item.name}</h3>
@@ -131,12 +173,27 @@
                     <p class="price">${item.price} руб.</p>
                     <div class="quantity">
                         <button onclick="decreaseQuantity(this)">-</button>
-                        <input type="number" value="1" min="1">
+                        <input type="number" value="1" min="1" oninput="validateQuantity(this)">
                         <button onclick="increaseQuantity(this)">+</button>
                     </div>
                     <button class="add-to-cart" onclick="addToCart('${item.name}', ${item.price}, this)">Добавить в корзину</button>
                 `;
                 menuContainer.appendChild(menuItem);
+            });
+        }
+
+        function filterCategory(category) {
+            const buttons = document.querySelectorAll('.categories button');
+            buttons.forEach(button => button.classList.remove('active'));
+            document.querySelector(`.categories button[onclick="filterCategory('${category}')"]`).classList.add('active');
+
+            const items = document.querySelectorAll('.menu-item');
+            items.forEach(item => {
+                if (item.dataset.category === category || category === 'all') {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
             });
         }
 
@@ -152,38 +209,63 @@
             }
         }
 
-        const cart = [];
+        function validateQuantity(input) {
+            input.value = Math.max(1, parseInt(input.value) || 1);
+        }
+
         function addToCart(name, price, button) {
-            const quantity = button.previousElementSibling.querySelector('input').value;
+            const quantity = parseInt(button.previousElementSibling.querySelector('input').value);
             cart.push({ name, price, quantity });
-            alert(`${name} x${quantity} добавлено в корзину`);
+            updateCartDisplay();
+        }
+
+        function updateCartDisplay() {
+            const cartItems = document.getElementById('cart-items');
+            cartItems.innerHTML = '';
+            cart.forEach((item, index) => {
+                cartItems.innerHTML += `
+                    <div class="cart-item">
+                        <span>${item.name} x${item.quantity}</span>
+                        <span>${item.price * item.quantity} руб.</span>
+                        <button onclick="removeFromCart(${index})">Удалить</button>
+                    </div>
+                `;
+            });
+        }
+
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCartDisplay();
         }
 
         async function placeOrder() {
             const items = cart.map(item => `${item.name} x${item.quantity}`).join(', ');
             const totalPrice = cart.reduce((total, item) => total + item.price * item.quantity, 0);
 
-            const response = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
-                method: 'POST',
-                headers: {
-                    apikey: SUPABASE_API_KEY,
-                    Authorization: `Bearer ${SUPABASE_API_KEY}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    user_id: 123456789, // Замените на ID пользователя
-                    items,
-                    total_price: totalPrice,
-                    status: 'В обработке',
-                }),
-            });
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+                    method: 'POST',
+                    headers: {
+                        apikey: SUPABASE_API_KEY,
+                        Authorization: `Bearer ${SUPABASE_API_KEY}`,
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        user_id: 123456789, // Замените на ID пользователя
+                        items,
+                        total_price: totalPrice,
+                        status: 'В обработке',
+                    }),
+                });
 
-            if (response.ok) {
+                if (!response.ok) throw new Error('Ошибка при оформлении заказа');
+
                 alert('Заказ успешно оформлен!');
-                cart.length = 0; // Очистить корзину
-                document.getElementById('cart-items').innerHTML = '';
-            } else {
-                alert('Ошибка при оформлении заказа');
+                cart.length = 0;
+                updateCartDisplay();
+            } catch (error) {
+                alert('Не удалось оформить заказ. Попробуйте позже.');
+                console.error(error);
             }
         }
 
