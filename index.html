@@ -19,17 +19,24 @@
             padding: 1em 0;
         }
         .menu-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 1em;
             padding: 1em;
-            justify-content: center;
+        }
+        .category {
+            margin-bottom: 2em;
+        }
+        .category h2 {
+            background-color: #1f1f1f;
+            padding: 0.5em;
+            border-radius: 8px;
         }
         .menu-item {
             background: #1f1f1f;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-            width: 200px;
+            width: calc(25% - 1em);
+            display: inline-block;
+            margin: 0.5em;
+            vertical-align: top;
             text-align: center;
             padding: 1em;
         }
@@ -47,72 +54,24 @@
             font-weight: bold;
             margin-bottom: 0.5em;
         }
-        .menu-item .quantity {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 0.5em;
-            margin-bottom: 1em;
-        }
-        .menu-item .quantity button {
-            background-color: #ff5722;
-            color: white;
-            border: none;
-            padding: 0.3em 0.8em;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .menu-item .quantity input {
-            width: 40px;
-            text-align: center;
-            border: 1px solid #555;
-            border-radius: 4px;
-            padding: 0.2em;
-            background-color: #1f1f1f;
-            color: white;
-        }
-        .menu-item button.add-to-cart {
-            background-color: #388e3c;
-            color: white;
-            border: none;
-            padding: 0.5em 1em;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        .cart {
-            margin: 2em;
-            padding: 1em;
-            background: #1f1f1f;
-            border-radius: 8px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
-        }
-        .cart h2 {
-            text-align: center;
-        }
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 0.5em;
-        }
         .categories {
             display: flex;
-            justify-content: center;
-            gap: 1em;
-            padding: 1em;
+            overflow-x: auto;
             background-color: #1f1f1f;
+            padding: 1em;
             position: sticky;
             top: 0;
             z-index: 1000;
         }
-        .categories button {
-            background-color: #333;
+        .categories a {
+            text-decoration: none;
             color: white;
-            border: none;
+            margin-right: 1em;
             padding: 0.5em 1em;
             border-radius: 4px;
-            cursor: pointer;
+            background-color: #333;
         }
-        .categories button.active {
+        .categories a:hover {
             background-color: #ff5722;
         }
     </style>
@@ -121,26 +80,70 @@
     <header>
         <h1>Меню Кафе "Южане"</h1>
     </header>
-    <div class="categories" id="categories">
-        <button class="active" onclick="filterCategory('grill')">Блюда на мангале</button>
-        <button onclick="filterCategory('sauces')">Соуса</button>
+    <div class="categories">
+        <a href="#grill">Блюда на мангале</a>
+        <a href="#garnish">Гарниры</a>
+        <a href="#sauces">Соусы</a>
+        <a href="#soups">Супы</a>
+        <a href="#bread">Хлеб</a>
+        <a href="#cold-snacks">Холодные закуски</a>
+        <a href="#hot-snacks">Горячие закуски</a>
+        <a href="#pasta">Паста</a>
+        <a href="#boats">Лодочки</a>
+        <a href="#hot-dishes-meat">Горячие блюда (мясо)</a>
+        <a href="#hot-dishes-fish">Горячие блюда (рыба)</a>
     </div>
-    <div class="menu-container" id="menu">
-        <!-- Меню будет загружено через JavaScript -->
-    </div>
-    <div class="cart" id="cart">
-        <h2>Корзина</h2>
-        <div id="cart-items"></div>
-        <button onclick="placeOrder()">Оформить заказ</button>
+    <div class="menu-container">
+        <div id="grill" class="category">
+            <h2>Блюда на мангале</h2>
+            <!-- Блюда на мангале -->
+        </div>
+        <div id="garnish" class="category">
+            <h2>Гарниры</h2>
+            <!-- Гарниры -->
+        </div>
+        <div id="sauces" class="category">
+            <h2>Соусы</h2>
+            <!-- Соусы -->
+        </div>
+        <div id="soups" class="category">
+            <h2>Супы</h2>
+            <!-- Супы -->
+        </div>
+        <div id="bread" class="category">
+            <h2>Хлеб</h2>
+            <!-- Хлеб -->
+        </div>
+        <div id="cold-snacks" class="category">
+            <h2>Холодные закуски</h2>
+            <!-- Холодные закуски -->
+        </div>
+        <div id="hot-snacks" class="category">
+            <h2>Горячие закуски</h2>
+            <!-- Горячие закуски -->
+        </div>
+        <div id="pasta" class="category">
+            <h2>Паста</h2>
+            <!-- Паста -->
+        </div>
+        <div id="boats" class="category">
+            <h2>Лодочки</h2>
+            <!-- Лодочки -->
+        </div>
+        <div id="hot-dishes-meat" class="category">
+            <h2>Горячие блюда (мясо)</h2>
+            <!-- Горячие блюда (мясо) -->
+        </div>
+        <div id="hot-dishes-fish" class="category">
+            <h2>Горячие блюда (рыба)</h2>
+            <!-- Горячие блюда (рыба) -->
+        </div>
     </div>
     <script>
         const SUPABASE_URL = 'https://zfoesujdbezworiwicno.supabase.co';
         const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpmb2VzdWpkYmV6d29yaXdpY25vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYzNTExMjEsImV4cCI6MjA1MTkyNzEyMX0.J9ssnUGmYlUUVVOHMaJiwcX8WqaYxUh-cpbugZh0L0U';
 
-        const cart = [];
-
         async function fetchMenu() {
-            document.body.style.cursor = 'wait';
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/menu`, {
                     headers: {
@@ -148,125 +151,43 @@
                         Authorization: `Bearer ${SUPABASE_API_KEY}`,
                     },
                 });
-                if (!response.ok) throw new Error('Ошибка загрузки меню');
                 const menu = await response.json();
                 displayMenu(menu);
             } catch (error) {
-                alert('Не удалось загрузить меню. Попробуйте позже.');
-                console.error(error);
-            } finally {
-                document.body.style.cursor = 'default';
+                console.error('Ошибка загрузки меню', error);
             }
         }
 
         function displayMenu(menu) {
-            const menuContainer = document.getElementById('menu');
-            menuContainer.innerHTML = '';
+            const categories = {
+                'Блюда на мангале': 'grill',
+                'Гарниры': 'garnish',
+                'Соусы': 'sauces',
+                'Супы': 'soups',
+                'Хлеб': 'bread',
+                'Холодные закуски': 'cold-snacks',
+                'Горячие закуски': 'hot-snacks',
+                'Паста': 'pasta',
+                'Лодочки': 'boats',
+                'Горячие блюда (мясо)': 'hot-dishes-meat',
+                'Горячие блюда (рыба)': 'hot-dishes-fish',
+            };
+
             menu.forEach(item => {
-                const menuItem = document.createElement('div');
-                menuItem.className = 'menu-item';
-                menuItem.dataset.category = item.category;
-                menuItem.innerHTML = `
-                    <img src="${item.photo_url}" alt="${item.name}">
-                    <h3>${item.name}</h3>
-                    <p>${item.description}</p>
-                    <p class="price">${item.price} руб.</p>
-                    <div class="quantity">
-                        <button onclick="decreaseQuantity(this)">-</button>
-                        <input type="number" value="1" min="1" oninput="validateQuantity(this)">
-                        <button onclick="increaseQuantity(this)">+</button>
-                    </div>
-                    <button class="add-to-cart" onclick="addToCart('${item.name}', ${item.price}, this)">Добавить в корзину</button>
-                `;
-                menuContainer.appendChild(menuItem);
-            });
-        }
-
-        function filterCategory(category) {
-            const buttons = document.querySelectorAll('.categories button');
-            buttons.forEach(button => button.classList.remove('active'));
-            document.querySelector(`.categories button[onclick="filterCategory('${category}')"]`).classList.add('active');
-
-            const items = document.querySelectorAll('.menu-item');
-            items.forEach(item => {
-                if (item.dataset.category === category || category === 'all') {
-                    item.style.display = 'block';
-                } else {
-                    item.style.display = 'none';
+                const category = categories[item.category];
+                if (category) {
+                    const categoryDiv = document.getElementById(category);
+                    const menuItem = document.createElement('div');
+                    menuItem.className = 'menu-item';
+                    menuItem.innerHTML = `
+                        <img src="${item.photo_url || ''}" alt="${item.name}">
+                        <h3>${item.name}</h3>
+                        <p>${item.description || ''}</p>
+                        <p class="price">${item.price} руб.</p>
+                    `;
+                    categoryDiv.appendChild(menuItem);
                 }
             });
-        }
-
-        function increaseQuantity(button) {
-            const input = button.previousElementSibling;
-            input.value = parseInt(input.value) + 1;
-        }
-
-        function decreaseQuantity(button) {
-            const input = button.nextElementSibling;
-            if (parseInt(input.value) > 1) {
-                input.value = parseInt(input.value) - 1;
-            }
-        }
-
-        function validateQuantity(input) {
-            input.value = Math.max(1, parseInt(input.value) || 1);
-        }
-
-        function addToCart(name, price, button) {
-            const quantity = parseInt(button.previousElementSibling.querySelector('input').value);
-            cart.push({ name, price, quantity });
-            updateCartDisplay();
-        }
-
-        function updateCartDisplay() {
-            const cartItems = document.getElementById('cart-items');
-            cartItems.innerHTML = '';
-            cart.forEach((item, index) => {
-                cartItems.innerHTML += `
-                    <div class="cart-item">
-                        <span>${item.name} x${item.quantity}</span>
-                        <span>${item.price * item.quantity} руб.</span>
-                        <button onclick="removeFromCart(${index})">Удалить</button>
-                    </div>
-                `;
-            });
-        }
-
-        function removeFromCart(index) {
-            cart.splice(index, 1);
-            updateCartDisplay();
-        }
-
-        async function placeOrder() {
-            const items = cart.map(item => `${item.name} x${item.quantity}`).join(', ');
-            const totalPrice = cart.reduce((total, item) => total + item.price * item.quantity, 0);
-
-            try {
-                const response = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
-                    method: 'POST',
-                    headers: {
-                        apikey: SUPABASE_API_KEY,
-                        Authorization: `Bearer ${SUPABASE_API_KEY}`,
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        user_id: 123456789, // Замените на ID пользователя
-                        items,
-                        total_price: totalPrice,
-                        status: 'В обработке',
-                    }),
-                });
-
-                if (!response.ok) throw new Error('Ошибка при оформлении заказа');
-
-                alert('Заказ успешно оформлен!');
-                cart.length = 0;
-                updateCartDisplay();
-            } catch (error) {
-                alert('Не удалось оформить заказ. Попробуйте позже.');
-                console.error(error);
-            }
         }
 
         fetchMenu();
