@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Южане - Меню</title>
+    <title>Меню Кафе "Южане"</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -76,27 +76,70 @@
             border-radius: 4px;
             cursor: pointer;
         }
+        .cart {
+            margin: 2em;
+            padding: 1em;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .cart h2 {
+            text-align: center;
+        }
     </style>
 </head>
 <body>
     <header>
         <h1>Меню Кафе "Южане"</h1>
     </header>
+    <div id="categories">
+        <!-- Категории будут загружены через JavaScript -->
+    </div>
     <div class="menu-container" id="menu">
-        <!-- Example Menu Item -->
-        <div class="menu-item">
-            <img src="https://via.placeholder.com/150" alt="Блюдо">
-            <h3>Шашлык из баранины</h3>
-            <p class="price">500 руб</p>
-            <div class="quantity">
-                <button onclick="decreaseQuantity(this)">-</button>
-                <input type="number" value="1" min="1">
-                <button onclick="increaseQuantity(this)">+</button>
-            </div>
-            <button class="add-to-cart" onclick="addToCart('Шашлык из баранины', 500, this)">Добавить в корзину</button>
-        </div>
+        <!-- Меню будет загружено через JavaScript -->
+    </div>
+    <div class="cart" id="cart">
+        <h2>Корзина</h2>
+        <div id="cart-items"></div>
+        <button onclick="placeOrder()">Оформить заказ</button>
     </div>
     <script>
+       const SUPABASE_URL = 'https://zfoesujdbezworiwicno.supabase.co';
+       const SUPABASE_API_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpmb2VzdWpkYmV6d29yaXdpY25vIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYzNTExMjEsImV4cCI6MjA1MTkyNzEyMX0.J9ssnUGmYlUUVVOHMaJiwcX8WqaYxUh-cpbugZh0L0U'; // Используйте Anon Key
+
+
+        async function fetchMenu() {
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/menu`, {
+                headers: {
+                    apikey: SUPABASE_API_KEY,
+                    Authorization: `Bearer ${SUPABASE_API_KEY}`,
+                },
+            });
+            const menu = await response.json();
+            displayMenu(menu);
+        }
+
+        function displayMenu(menu) {
+            const menuContainer = document.getElementById('menu');
+            menu.forEach(item => {
+                const menuItem = document.createElement('div');
+                menuItem.className = 'menu-item';
+                menuItem.innerHTML = `
+                    <img src="${item.photo_url}" alt="${item.name}">
+                    <h3>${item.name}</h3>
+                    <p>${item.description}</p>
+                    <p class="price">${item.price} руб.</p>
+                    <div class="quantity">
+                        <button onclick="decreaseQuantity(this)">-</button>
+                        <input type="number" value="1" min="1">
+                        <button onclick="increaseQuantity(this)">+</button>
+                    </div>
+                    <button class="add-to-cart" onclick="addToCart('${item.name}', ${item.price}, this)">Добавить в корзину</button>
+                `;
+                menuContainer.appendChild(menuItem);
+            });
+        }
+
         function increaseQuantity(button) {
             const input = button.previousElementSibling;
             input.value = parseInt(input.value) + 1;
@@ -109,10 +152,42 @@
             }
         }
 
-        function addToCart(itemName, itemPrice, button) {
+        const cart = [];
+        function addToCart(name, price, button) {
             const quantity = button.previousElementSibling.querySelector('input').value;
-            alert(`Добавлено в корзину: ${itemName} x${quantity} на сумму ${itemPrice * quantity} руб.`);
+            cart.push({ name, price, quantity });
+            alert(`${name} x${quantity} добавлено в корзину`);
         }
+
+        async function placeOrder() {
+            const items = cart.map(item => `${item.name} x${item.quantity}`).join(', ');
+            const totalPrice = cart.reduce((total, item) => total + item.price * item.quantity, 0);
+
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/orders`, {
+                method: 'POST',
+                headers: {
+                    apikey: SUPABASE_API_KEY,
+                    Authorization: `Bearer ${SUPABASE_API_KEY}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    user_id: 123456789, // Замените на ID пользователя
+                    items,
+                    total_price: totalPrice,
+                    status: 'В обработке',
+                }),
+            });
+
+            if (response.ok) {
+                alert('Заказ успешно оформлен!');
+                cart.length = 0; // Очистить корзину
+                document.getElementById('cart-items').innerHTML = '';
+            } else {
+                alert('Ошибка при оформлении заказа');
+            }
+        }
+
+        fetchMenu();
     </script>
 </body>
 </html>
