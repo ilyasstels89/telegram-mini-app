@@ -20,6 +20,9 @@
         }
         .menu-container {
             padding: 1em;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
         }
         .category {
             margin-bottom: 2em;
@@ -35,11 +38,14 @@
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
             width: calc(50% - 1em);
-            display: inline-block;
             margin: 0.5em;
-            vertical-align: top;
             text-align: center;
             padding: 1em;
+        }
+        @media (min-width: 768px) {
+            .menu-item {
+                width: calc(33.33% - 1em);
+            }
         }
         .menu-item img {
             max-width: 100%;
@@ -116,10 +122,44 @@
             text-align: center;
             padding: 0.5em;
             box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.5);
+            cursor: pointer;
         }
         .cart-bar span {
             font-size: 1.2em;
             font-weight: bold;
+        }
+        .cart-modal {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: #1f1f1f;
+            color: white;
+            padding: 1em;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 400px;
+            z-index: 1000;
+        }
+        .cart-modal h2 {
+            margin-top: 0;
+        }
+        .cart-modal .cart-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5em;
+        }
+        .cart-modal .close-btn {
+            background-color: #ff5722;
+            color: white;
+            border: none;
+            padding: 0.5em 1em;
+            border-radius: 4px;
+            cursor: pointer;
+            display: block;
+            margin: 1em auto 0;
         }
     </style>
 </head>
@@ -186,8 +226,13 @@
             <!-- Горячие блюда (рыба) -->
         </div>
     </div>
-    <div class="cart-bar">
-        <span>Итого: <span id="cart-total">0</span> руб.</span>
+    <div class="cart-bar" onclick="toggleCartModal()">
+        <span>Корзина: <span id="cart-total">0</span> руб.</span>
+    </div>
+    <div class="cart-modal" id="cart-modal">
+        <h2>Ваша корзина</h2>
+        <div id="cart-items"></div>
+        <button class="close-btn" onclick="toggleCartModal()">Закрыть</button>
     </div>
     <script>
         const SUPABASE_URL = 'https://zfoesujdbezworiwicno.supabase.co';
@@ -260,6 +305,7 @@
                 button.remove();
             }
             updateCartTotal();
+            updateCartItems();
         }
 
         function increaseQuantity(name, button) {
@@ -269,6 +315,7 @@
                 const inputField = button.previousElementSibling;
                 if (inputField) inputField.value = item.quantity;
                 updateCartTotal();
+                updateCartItems();
             }
         }
 
@@ -290,12 +337,32 @@
                     quantityControls.remove();
                 }
                 updateCartTotal();
+                updateCartItems();
             }
         }
 
         function updateCartTotal() {
             const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
             document.getElementById('cart-total').textContent = total;
+        }
+
+        function updateCartItems() {
+            const cartItemsContainer = document.getElementById('cart-items');
+            cartItemsContainer.innerHTML = '';
+            cart.forEach(item => {
+                const cartItem = document.createElement('div');
+                cartItem.className = 'cart-item';
+                cartItem.innerHTML = `
+                    <span>${item.name} x${item.quantity}</span>
+                    <span>${item.price * item.quantity} руб.</span>
+                `;
+                cartItemsContainer.appendChild(cartItem);
+            });
+        }
+
+        function toggleCartModal() {
+            const cartModal = document.getElementById('cart-modal');
+            cartModal.style.display = cartModal.style.display === 'block' ? 'none' : 'block';
         }
 
         fetchMenu();
